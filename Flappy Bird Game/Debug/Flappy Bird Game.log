@@ -1,0 +1,5 @@
+﻿  game.cpp
+c:\users\gabi\documents\visual studio 2015\projects\flappy bird game\flappy bird game\game.cpp(109): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\gabi\documents\visual studio 2015\projects\flappy bird game\flappy bird game\game.cpp(291): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+  Flappy Bird Game.vcxproj -> C:\Users\Gabi\Documents\Visual Studio 2015\Projects\Flappy Bird Game\Debug\Flappy Bird Game.exe
+  Flappy Bird Game.vcxproj -> C:\Users\Gabi\Documents\Visual Studio 2015\Projects\Flappy Bird Game\Debug\Flappy Bird Game.pdb (Full PDB)
