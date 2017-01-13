@@ -26,7 +26,6 @@ int Score::import_file()
         best_score = atoi(line.c_str()) / 128;
         else
         {
-            //MessageBox(NULL,"Cheating! Go to score.txt and set it to 0!","ERROR",NULL);
             return -1;
         }
     }

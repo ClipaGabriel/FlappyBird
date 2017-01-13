@@ -27,7 +27,7 @@ Game::Game()
         return ;
     if (scores.import_file() != 1)
         return ;
-    window.create(sf::VideoMode(480, 640), "Flappy Bird!", sf::Style::Titlebar | sf::Style::Close);
+    window.create(sf::VideoMode(480, 640), "Flappy Bird", sf::Style::Titlebar | sf::Style::Close);
     window.setFramerateLimit(60);
     window.setKeyRepeatEnabled(false);
     sounds = true;
@@ -49,7 +49,7 @@ void Game::runGame()
             break;
 
         case GAME_OVER:
-            state = GAME;
+			state = GAME;
             single();
             break;
 
@@ -83,6 +83,10 @@ void Game::menu()
 		return;
 	if (!exit.loadFromFile("images/exit.png"))
 		return;
+	if (!boxscore.loadFromFile("images/boxscore.png"))
+		return;
+	if (!gameover.loadFromFile("images/gameover.png"))
+		return;
 
 	logosprite.setTexture(logo);
 	startsprite.setTexture(start);
@@ -90,24 +94,7 @@ void Game::menu()
 	settingssprite.setTexture(settings);
 	exitsprite.setTexture(exit);
 
-
     logosprite.setPosition(480/2-logosprite.getGlobalBounds().width/2, 20);
-
-
-
-    const int buttons = 4;
-
-    sf::Text buttons_text[buttons];
-
-    string str[] = {"Play", "Score", "Options", "Exit"};
-    for (int i = 0; i < buttons; i++)
-    {
-        //buttons_text[i].setFont(font);
-        //buttons_text[i].setCharacterSize(45);
-
-       // buttons_text[i].setString(str[i]);
-        buttons_text[i].setPosition(480/2-buttons_text[i].getGlobalBounds().width/2, 150+i*80);
-    }
 	startsprite.setPosition(480 / 2 - startsprite.getGlobalBounds().width / 2, 150);
 	resultssprite.setPosition(480 / 2 - resultssprite.getGlobalBounds().width / 2, 230);
 	settingssprite.setPosition(480 / 2 - settingssprite.getGlobalBounds().width / 2, 310);
@@ -149,14 +136,6 @@ void Game::menu()
             }
         }
         window.clear();
-
-        for (int i = 0; i<buttons; i++)
-        {
-            if (buttons_text[i].getGlobalBounds().contains(mouse))
-                buttons_text[i].setFillColor(sf::Color::Yellow);
-            else
-                buttons_text[i].setFillColor(sf::Color::Black);
-        }
 		window.draw(background_sprite);
 		window.draw(floor_sprite);
 		window.draw(logosprite);
@@ -164,10 +143,6 @@ void Game::menu()
 		window.draw(resultssprite);
 		window.draw(settingssprite);
 		window.draw(exitsprite);
-        for (int i = 0; i<buttons; i++)
-        {
-            window.draw(buttons_text[i]);
-        }
         window.display();
     }
 }
@@ -176,6 +151,7 @@ void Game::single()
 {
 	player.reset_player();
     bool colision = false;
+	bool showScore = false;
 	Obstacles obstacles(800);
 	Obstacles obstacles2(1200);
     background_sprite.setTexture(background);
@@ -187,9 +163,11 @@ void Game::single()
     text.setFont(font);
     error.setFont(font);
     text.setPosition(240, 50);
-    error.setPosition(65, 200);
+	gameoversprite.setPosition(145, 50);
+	boxscoresprite.setPosition(135, 180);
+    error.setPosition(180, 220);
     error.setCharacterSize(30);
-    error.setFillColor(sf::Color::Red);
+    error.setFillColor(sf::Color(74, 55, 36, 255));
     if (obstacles.load_file()!= 1)
         state = END;
     if (obstacles2.load_file()!= 1)
@@ -214,6 +192,7 @@ void Game::single()
             }
             else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Return) && player.speed == 0)
             {
+				showScore = false;
                 state = GAME_OVER;
             }
             else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape) && player.speed == 0)
@@ -230,8 +209,7 @@ void Game::single()
         {
             if (sounds) player.get_point.play();
         }
-        if (player.detect_collision(obstacles) == true ||
-			player.detect_collision(obstacles2) == true)
+        if (player.detect_collision(obstacles) == true || player.detect_collision(obstacles2) == true)
         {
 			player.speed = 0;
             obstacles.speed = 0;
@@ -239,14 +217,16 @@ void Game::single()
             if (!colision)
             {
                 colision = true;
+				showScore = true;
                 if (sounds) player.die.play();
             }
             if (scores.check(player.points))
             {
                 scores.save();
             }
-            error.setString("You lost! Earned points: " + player.return_points() + "\n" +
-                            "Your best score: " + scores.return_points() + " points" + "\n");
+			boxscoresprite.setTexture(boxscore);
+			gameoversprite.setTexture(gameover);
+            error.setString( player.return_points() + "       " + scores.return_points() + "\n");
         }
         else
         {
@@ -265,6 +245,10 @@ void Game::single()
         window.draw(floor_sprite);
         window.draw(text);
         window.draw(player.player);
+		if (showScore) {
+			window.draw(boxscoresprite);
+			window.draw(gameoversprite);
+		}
         window.draw(error);
         window.display();
     }
@@ -272,117 +256,110 @@ void Game::single()
 
 void Game::score()
 {
-    sf::Text title("Score info", font, 80);
-    title.setStyle(sf::Text::Bold);
+	if (!bestscore.loadFromFile("images/bestscore.png"))
+		return;
+	if (!backmenu.loadFromFile("images/backmenu.png"))
+		return;
 
-    title.setPosition(480/2-title.getGlobalBounds().width/2, 20);
+	bestscoresprite.setTexture(bestscore);
+	backmenusprite.setTexture(backmenu);
+	highscore.setFont(font);
+	highscore.setPosition(464 / 2 - highscore.getGlobalBounds().width / 2, 230);
+	highscore.setCharacterSize(30);
+	highscore.setFillColor(sf::Color(74, 55, 36, 255));
+	highscore.setString(scores.return_points() + "\n");
+	bestscoresprite.setPosition(480 / 2 - bestscoresprite.getGlobalBounds().width / 2, 180);
+	backmenusprite.setPosition(480 / 2 - backmenusprite.getGlobalBounds().width / 2, 380);
+	
+	while (state == SCORE)
+	{
+		sf::Vector2f mouse(sf::Mouse::getPosition(window));
+		sf::Event event;
 
-    const int buttons = 2;
+		while (window.pollEvent(event))
+		{
+			if (event.type == sf::Event::Closed || event.type == sf::Event::KeyPressed&&
+				event.key.code == sf::Keyboard::Escape)
+				state = MENU;
 
-    sf::Text buttons_text[buttons];
-
-    string str[] = {"Your best score = " + scores.return_points(), "Return to menu"};
-    for (int i = 0; i < buttons; i++)
-    {
-        buttons_text[i].setFont(font);
-        buttons_text[i].setCharacterSize(35);
-
-        buttons_text[i].setString(str[i]);
-        buttons_text[i].setPosition(480/2-buttons_text[i].getGlobalBounds().width/2, 250+i*120);
-    }
-
-    while (state == SCORE)
-    {
-        sf::Vector2f mouse(sf::Mouse::getPosition(window));
-        sf::Event event;
-
-        while(window.pollEvent(event))
-        {
-            if (event.type == sf::Event::Closed || event.type == sf::Event::KeyPressed&&
-                    event.key.code == sf::Keyboard::Escape)
-                state = MENU;
-
-            else if (buttons_text[1].getGlobalBounds().contains(mouse)&&
-                     (event.type == sf::Event::MouseButtonReleased) &&
-                     (event.key.code == sf::Mouse::Left))
-            {
-                state = MENU;
-            }
-        }
-        window.clear();
-
-        for (int i = 0; i<buttons; i++)
-        {
-            if (buttons_text[i].getGlobalBounds().contains(mouse))
-                buttons_text[i].setFillColor(sf::Color::Yellow);
-            else
-                buttons_text[i].setFillColor(sf::Color::Black);
-        }
+			else if (backmenusprite.getGlobalBounds().contains(mouse) &&
+				(event.type == sf::Event::MouseButtonReleased) &&
+				(event.key.code == sf::Mouse::Left))
+			{
+				state = MENU;
+			}
+		}
+		window.clear();
 		window.draw(background_sprite);
 		window.draw(floor_sprite);
-        for (int i = 0; i<buttons; i++)
-        {
-            window.draw(buttons_text[i]);
-        }
-        window.draw(title);
-        window.display();
-    }
+		window.draw(bestscoresprite);
+		window.draw(backmenusprite);
+		window.draw(highscore);
+		window.display();
+	}
 }
 
 void Game::options()
 {
-    sf::Text title("Options", font, 80);
-    title.setStyle(sf::Text::Bold);
-
+	if (!backtex.loadFromFile("images/backtex.png"))
+		return;
+	if (!backmenu.loadFromFile("images/backmenu.png"))
+		return;
+	if (!bigmenu.loadFromFile("images/bigmenu.png"))
+		return;
+	backtexsprite.setTexture(backtex);
+	backmenusprite.setTexture(backmenu);
+	bigmenusprite.setTexture(bigmenu);
+	bigmenusprite.setPosition(480 / 2 - bigmenusprite.getGlobalBounds().width / 2, 80);
+	backmenusprite.setPosition(480 / 2 - backmenusprite.getGlobalBounds().width / 2, 420);
+	backtexsprite.setPosition(480 / 2 - backtexsprite.getGlobalBounds().width / 2, 340);
     sf::Texture playertexture;
-    sf::Sprite yellow_player;
-    if (!playertexture.loadFromFile("images/flappy.png"))
+    sf::Sprite player1;
+    if (!playertexture.loadFromFile("images/flappy1.png"))
     {
         state = END;
         return ;
     }
-    yellow_player.setTexture(playertexture);
+    player1.setTexture(playertexture);
 
     sf::Texture playertexture1;
-    sf::Sprite blue_player;
+    sf::Sprite player2;
     if (!playertexture1.loadFromFile("images/flappy2.png"))
     {
         state = END;
         return ;
     }
-    blue_player.setTexture(playertexture1);
+    player2.setTexture(playertexture1);
 
-    yellow_player.setPosition(170, 250);
-    blue_player.setPosition(620, 250);
+    player1.setPosition(215, 150);
+    player2.setPosition(215, 240);
 
-    title.setPosition(480/2-title.getGlobalBounds().width/2, 20);
 
-    const int buttons = 4; // how much buttons
+    const int buttons = 4;
 
     sf::Text buttons_text[buttons];
 
-    string str[] = {"Yellow bird" , "Blue bird", "Return to menu", "Sounds: ON"};
+    string str[] = {"Yellow bird" , "Blue bird", " ", "Sounds: ON"};
     for (int i = 0; i < buttons; i++)
     {
         buttons_text[i].setFont(font);
-        buttons_text[i].setCharacterSize(65);
+        buttons_text[i].setCharacterSize(21);
 
         buttons_text[i].setString(str[i]);
 
     }
-    buttons_text[0].setPosition(50, 150);
-    buttons_text[1].setPosition(500, 150);
-    buttons_text[2].setPosition(480/2-buttons_text[2].getGlobalBounds().width/2, 490);
-    buttons_text[3].setPosition(250, 350);
+    buttons_text[0].setPosition(184, 110);
+    buttons_text[1].setPosition(194, 200);
+    buttons_text[3].setPosition(480 / 2 - buttons_text[3].getGlobalBounds().width / 2, 345);
 
     if (sounds)
     {
-        buttons_text[3].setFillColor(sf::Color::Green);
+        buttons_text[3].setFillColor(sf::Color::White);
         buttons_text[3].setString("Sounds: ON");
     }
     else
     {
-        buttons_text[3].setFillColor(sf::Color::Red);
+        buttons_text[3].setFillColor(sf::Color(74, 55, 36, 255));
         buttons_text[3].setString("Sounds: OFF");
     }
 
@@ -399,7 +376,7 @@ void Game::options()
             event.key.code == sf::Keyboard::Escape)
                 state = MENU;
 
-            else if ((buttons_text[0].getGlobalBounds().contains(mouse) || yellow_player.getGlobalBounds().contains(mouse)) &&
+            else if ((buttons_text[0].getGlobalBounds().contains(mouse) || player1.getGlobalBounds().contains(mouse)) &&
             (event.type == sf::Event::MouseButtonReleased) &&
             (event.key.code == sf::Mouse::Left))
             {
@@ -407,14 +384,14 @@ void Game::options()
 
             }
 
-            else if ((buttons_text[1].getGlobalBounds().contains(mouse) || blue_player.getGlobalBounds().contains(mouse)) &&
+            else if ((buttons_text[1].getGlobalBounds().contains(mouse) || player2.getGlobalBounds().contains(mouse)) &&
                      (event.type == sf::Event::MouseButtonReleased) &&
                      (event.key.code == sf::Mouse::Left))
 
             {
 				player.player.setTexture(player.playertexture1);
             }
-            else if ((buttons_text[2].getGlobalBounds().contains(mouse)) &&
+            else if ((backmenusprite.getGlobalBounds().contains(mouse)) &&
                      (event.type == sf::Event::MouseButtonReleased) &&
                      (event.key.code == sf::Mouse::Left))
             {
@@ -428,14 +405,14 @@ void Game::options()
                 if (sounds)
                 {
                     buttons_text[3].setString("Sounds: OFF");
-                    buttons_text[3].setFillColor(sf::Color::Red);
+                    buttons_text[3].setFillColor(sf::Color(74, 55, 36, 255));
                     sounds = false;
                 }
 
                 else
                 {
                     buttons_text[3].setString("Sounds: ON");
-                    buttons_text[3].setFillColor(sf::Color::Green);
+                    buttons_text[3].setFillColor(sf::Color::White);
                     sounds = true;
                 }
 
@@ -447,19 +424,21 @@ void Game::options()
         for (int i = 0; i<buttons - 1; i++) // -1 because the sounds button is collored above
         {
             if (buttons_text[i].getGlobalBounds().contains(mouse))
-                buttons_text[i].setFillColor(sf::Color::Yellow);
+                buttons_text[i].setFillColor(sf::Color::White);
             else
-                buttons_text[i].setFillColor(sf::Color::Black);
+                buttons_text[i].setFillColor(sf::Color(74, 55, 36, 255));
         }
 		window.draw(background_sprite);
 		window.draw(floor_sprite);
+		window.draw(backtexsprite);
+		window.draw(bigmenusprite);
         for (int i = 0; i<buttons; i++)
         {
             window.draw(buttons_text[i]);
         }
-        window.draw(title);
-        window.draw(yellow_player);
-        window.draw(blue_player);
+		window.draw(backmenusprite);
+        window.draw(player1);
+        window.draw(player2);
         window.display();
     }
 }

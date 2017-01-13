@@ -12,7 +12,7 @@ using namespace std;
 
 int Player::load_file()
 {
-    if (!playertexture.loadFromFile("images/flappy.png"))
+    if (!playertexture.loadFromFile("images/flappy1.png"))
         return -1;
 
 	player.setTexture(playertexture);
@@ -44,6 +44,8 @@ void Player::move_player()
 	player.setPosition(x, y);
 }
 
+
+
 string Player::return_points()
 {
     std::stringstream points_ss;
@@ -74,7 +76,7 @@ bool Player::over_obstacles(Obstacles &pipe)
     if (pipe.x <= -200)
     {
 		points += 1;
-        pipe.x = 800;
+        pipe.x = 500;
         pipe.rand_obstacles();
         return true;
     }
