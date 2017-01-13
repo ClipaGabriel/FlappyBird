@@ -1,0 +1,3 @@
+Jocul poate fi executat din folderul debug.
+Nu am reusit sa fac aproximativ niciun commit.
+Se foloseste tasta space pentru a controla pasarea.
